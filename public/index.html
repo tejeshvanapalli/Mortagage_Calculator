@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comma Adder</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Times New Roman', Georgia, serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%);
+            color: #2d3748;
+            line-height: 1.6;
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #1a202c;
+            text-align: center;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        h2, h3 {
+            font-size: 1.5rem;
+            color: #2b6cb0;
+            margin: 2rem 0 1rem;
+            font-weight: 600;
+            border-bottom: 2px solid #2b6cb0;
+            padding-bottom: 0.5rem;
+        }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-family: 'Times New Roman';
+            font-size: 1rem;
+            resize: vertical;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: border-color 0.3s ease;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #2b6cb0;
+            box-shadow: 0 0 8px rgba(43, 108, 176, 0.3);
+        }
+        input[type="file"] {
+            padding: 10px;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            background-color: #fff;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        input[type="file"]:hover {
+            border-color: #2b6cb0;
+        }
+        button {
+            background-color: #2b6cb0;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            min-width: 150px;
+            text-align: center;
+        }
+        button:hover {
+            background-color: #1a4971;
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .button-row {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+        .div-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+        .div-row > div {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f9fafb;
+            border: 1px solid #cbd5e0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .div-row > div > h3 {
+            margin-top: 0;
+            font-size: 1.25rem;
+            text-align: center;
+            color: #2b6cb0;
+        }
+        .div-row > div > div[contenteditable] {
+            flex: 1;
+            background-color: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 1rem;
+            min-height: 150px;
+            overflow-y: auto;
+        }
+        .div-row .button-row {
+            margin-top: 1.5rem;
+            justify-content: center;
+        }
+        .button-center {
+            text-align: center;
+            margin: 1.5rem 0;
+        }
+        #output, #output1 {
+            background-color: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 200px;
+            font-family: 'Times New Roman';
+            font-size: 1rem;
+            white-space: pre-wrap;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+        }
+        pre, #output2 { white-space: pre-wrap; background: #fff; border: 1px solid #ccc; padding: 10px; }
+        .invalid { color: red; font-weight: bold; }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+        }
+        th {
+            background-color: #2b6cb0;
+            color: #fff;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        tr:nth-child(even) {
+            background-color: #f7fafc;
+        }
+        tr:hover {
+            background-color: #edf2f7;
+        }
+        #recent-files {
+            background-color: #f0f4f8;
+            border: 1px solid #cbd5e0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        #recent-files h3 {
+            font-size: 1.25rem;
+            color: #2b6cb0;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        #fileList {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 1rem;
+        }
+        .file-entry {
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .file-entry span {
+            font-size: 1rem;
+            color: #1a202c;
+            word-break: break-word;
+        }
+        .file-entry button {
+            background-color: #e53e3e;
+            border: none;
+            color: white;
+            padding: 6px 14px;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .file-entry button:hover {
+            background-color: #c53030;
+        }
+        .clear-btn {
+            background-color: #2b6cb0;
+            border: none;
+            color: white;
+            padding: 10px 18px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+            transition: background-color 0.3s ease;
+        }
+        .clear-btn:hover {
+            background-color: #1a4971;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            h2, h3 {
+                font-size: 1.3rem;
+            }
+            button {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+                min-width: 120px;
+            }
+            .button-row {
+                flex-direction: column;
+                align-items: center;
+            }
+            table {
+                font-size: 0.85rem;
+            }
+            th, td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Mortagage Calculator & Formatter</h1>
+    <h3>Input Data</h3>
+    <textarea id="inputData" placeholder="Paste your input data here or upload a file..."></textarea>
+    <br>
+    <input type="file" id="fileInput" accept=".txt">
+    <br>
+    <h3>Field Separated Input Data</h3>
+    <div id="output" contenteditable="true"></div>
+    <div class="button-row">
+        <button onclick="convertText()">Convert</button>
+        <button onclick="downloadOutput(event)">Download Data as Text File</button>
+    </div>
+    <div class="div-row">
+        <div>
+            <h3>Key:Value</h3>
+            <div id="output1" contenteditable="true"></div>
+            <div class="button-row">
+                <button onclick="validate()">Validate & Highlight</button>
+            </div>
+        </div>
+        <div>
+            <h3>Validation Interface</h3>
+            <div id="output2" contenteditable="true"></div>
+            <div class="button-row">
+                <button onclick="transferText()">Export To Table</button>
+            </div>
+        </div>
+    </div>
+    <h2>Customer Data Table:</h2>
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>Customer Reference Number</th>
+                <th>Customer Name</th>
+                <th>City, State</th>
+                <th>Purchase Value and Down Payment</th>
+                <th>Loan Period and Annual Interest</th>
+                <th>Guarantor Name</th>
+                <th>Guarantor Reference Number</th>
+                <th>Loan Amount and Principal</th>
+                <th>Total Interest for Loan Period and Property Tax for Loan Period</th>
+                <th>Property Insurance per Month and PMI per Annum</th>
+                <th>Loan Amount</th>
+                <th>Loan Period</th>
+                <th>Total Interest for Loan Period</th>
+                <th>Source</th>
+                <th>Record No</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+    <div class="button-row">
+        <button onclick="exportToExcel(event)">Export to Excel</button>
+        <button onclick="clearFields()">Clear All</button>
+    </div>
+    <br>
+    <div id="recent-files">
+        <h3>Recent Files</h3>
+        <div id="fileList">
+            <div class="file-entry">
+                <span>Workload0311.txt</span>
+                <button onclick="deleteFile('Workload0311.txt')">Delete</button>
+            </div>
+        </div>
+        <button class="clear-btn" onclick="clearAllRecentFiles()">Clear All Recent Files</button>
+    </div>
+
+    <script>
+        let sourceFileName = '';
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        let recentFiles = new Set(JSON.parse(localStorage.getItem('recentFiles') || '[]'));
+
+        function saveToStorage() {
+            localStorage.setItem('recentFiles', JSON.stringify([...recentFiles]));
+        }
+
+        function renderList() {
+            fileList.innerHTML = '';
+            recentFiles.forEach(filename => addFileEntry(filename));
+        }
+
+        function addFileEntry(filename) {
+            const div = document.createElement('div');
+            div.className = 'file-entry';
+            div.innerHTML = `
+                <span>${filename}</span>
+                <button onclick="removeFile('${filename}', this)">Delete</button>
+            `;
+            fileList.appendChild(div);
+        }
+
+        function removeFile(filename, button) {
+            recentFiles.delete(filename);
+            saveToStorage();
+            button.parentElement.remove();
+        }
+
+        function clearAllRecentFiles() {
+            if (confirm("Are you sure you want to clear all recent files?")) {
+                recentFiles.clear();
+                saveToStorage();
+                renderList();
+            }
+        }
+
+        fileInput.addEventListener('change', async function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (!file.name.endsWith('.txt')) {
+                alert('Please select a .txt file.');
+                fileInput.value = "";
+                return;
+            }
+            if (recentFiles.has(file.name)) {
+                alert('This file has already been uploaded. Please choose a different file.');
+                fileInput.value = "";
+                return;
+            }
+            try {
+                const text = await file.text();
+                if (!text.trim()) {
+                    alert('The selected file is empty.');
+                    fileInput.value = "";
+                    return;
+                }
+                document.getElementById("inputData").value = text;
+                window.processInputPython(text);
+                console.log('Pyodide processing completed');
+                sourceFileName = file.name.replace(/\.[^/.]+$/, '');
+                recentFiles.add(file.name);
+                saveToStorage();
+                addFileEntry(file.name);
+                fileInput.value = "";
+            } catch (error) {
+                console.error('Error processing file:', error);
+                alert('An error occurred while reading the file: ' + error.message);
+                fileInput.value = "";
+            }
+        });
+
+        renderList();
+    </script>
+
+    <script>
+        function escapeHtml(text) {
+        return text.replace(/[&<>"]+/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+        }
+
+        function isInvalidValue(value) {
+        return !value || value.trim() === "0" || value.trim() === "" || value.toLowerCase() === "undefined";
+        }
+
+        const stateMap = {
+        AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
+        CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
+        HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa",
+        KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+        MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi", MO: "Missouri",
+        MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey",
+        NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota", OH: "Ohio",
+        OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
+        SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont",
+        VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming"
+        };
+
+        function formatCityState(input) {
+        const preservedAbbr = ['ST', 'AVE', 'AVN', 'RD', 'BLVD', 'DR', 'LN', 'PKWY', 'CT','FT'];
+
+        input = input
+            .toUpperCase()
+            // Step 1: Protect known abbreviations by replacing the dot with placeholder
+            .replace(new RegExp(`\\b(${preservedAbbr.join('|')})\\.`, 'g'), '##$1##')
+            // Step 2: Replace . and ; with comma
+            .replace(/[.;]/g, ',')
+            // Step 3: Normalize commas to have spaces around
+            .replace(/\s*,\s*/g, ' , ')
+            // Step 4: Restore the preserved abbreviations
+            .replace(/##(ST|AVE|AVN|RD|BLVD|DR|LN|PKWY|CT|FT)##/g, '$1.')
+            // Step 5: Remove extra commas or spaces
+            .replace(/ , , /g, ' , ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        // Step 6: Capitalize city and keep state in uppercase
+        const parts = input.split(" , ");
+        if (parts.length === 2) {
+            const city = parts[0].toLowerCase().replace(/\b\w/g, c => c.toUpperCase()); // Capitalize each word
+            const state = parts[1].toUpperCase();
+            return `${city} , ${state}`;
+        }
+
+        return input;
+        }
+
+
+        function normalizeLine(line) {
+        const keys = [
+            "Customer reference number:", "Customer Name:", "City, State:", "Purchase Value:",
+            "Down Payment percentage:", "Loan Period:", "Annual Interest rate:",
+            "Purchase Value Reduction:", "Monthly Principal Reduction:", "Total Interest Reduction:",
+            "Guarantor Name:", "Guarantor Reference Number:", "Source :"
+        ];
+
+        for (const key of keys) {
+            if (line.trim().startsWith(key)) {
+            let val = line.substring(key.length).trim();
+
+            // Apply City/State formatter
+            if (key === "City, State:") {
+                val = formatCityState(val);
+            }
+
+            // Auto-fix percentage decimals
+            const percentageFields = [
+                "Annual Interest rate:", "Purchase Value Reduction:",
+                "Monthly Principal Reduction:", "Total Interest Reduction:"
+            ];
+            if (percentageFields.includes(key)) {
+                const match = val.match(/^(\d{1,2})(\.\d+)?%$/);
+                if (match) {
+                const number = parseFloat(match[1] + (match[2] || ""));
+                val = number.toFixed(2) + "%";
+                }
+            }
+
+            return `${key} ${isInvalidValue(val) ? "undefined" : val}`;
+            }
+        }
+        return line;
+        }
+
+        function validateName(value) {
+        const validPrefixes = ["MR.", "MS.", "MRS.", "DR.", "MISS."];
+        const match = value.trim().match(/^([A-Za-z]+\.)\s*([A-Za-z]+)\s+([A-Za-z]+)\s+([A-Za-z]+)$/);
+        if (!match) return false;
+        const prefix = match[1].toUpperCase();
+        return validPrefixes.includes(prefix);
+        }
+
+        function validateCityState(value) {
+        // Normalize spacing around comma
+        value = value.replace(/\s*,\s*/g, ' , ').trim();
+        
+        const parts = value.split(" , ");
+        if (parts.length === 2) {
+            const [city, state] = parts;
+            const cityValid = /^[A-Z][a-z]+(?: [A-Z][a-z]+)*$/.test(city); // Title case city
+            const stateValid = stateMap.hasOwnProperty(state.toUpperCase()); // State must be valid 2-letter code
+            return cityValid && stateValid;
+        }
+        return false;
+        }
+
+        function validateField(label, value) {
+        if (isInvalidValue(value)) return false;
+
+        value = value.trim();
+
+        // Reject common "zero" values
+        const zeroPatterns = ["0", "0.00", "0%", "0.00%"];
+        if (zeroPatterns.includes(value)) return false;
+
+        switch (label) {
+            case "Purchase Value:":
+            return /^\$\d[\d,]*\.\d{2}$/.test(value) && !value.endsWith(".00");
+            case "Down Payment percentage:":
+            return /^\d+%$/.test(value) && !value.startsWith("0");
+            case "Loan Period:":
+            return /^\d+\s+Years$/.test(value) && !value.startsWith("0");
+            case "Annual Interest rate:":
+            case "Purchase Value Reduction:":
+            case "Monthly Principal Reduction:":
+            case "Total Interest Reduction:":
+            return /^\d{1,2}\.\d{2}%$/.test(value) && !value.startsWith("0");
+            default:
+            return true;
+        }
+        }
+
+        function validate() {
+        const input = document.getElementById("output1").innerText;
+        const lines = input.split("\n");
+        const outputLines = lines.map(line => {
+            const normalizedLine = normalizeLine(line);
+            const trimmed = normalizedLine.trim();
+
+            if (
+            trimmed === "" ||
+            trimmed.toLowerCase().endsWith("undefined") ||
+            trimmed.endsWith(":") // catches empty values like "Source:"
+            ) {
+            return `<span class="invalid">${escapeHtml(normalizedLine)}</span>`;
+            }
+
+
+            if (trimmed.startsWith("Customer Name:")) {
+            const val = trimmed.substring("Customer Name:".length).trim();
+            if (!validateName(val)) return `<span class="invalid">${escapeHtml(normalizedLine)}</span>`;
+            } else if (trimmed.startsWith("Guarantor Name:")) {
+            const val = trimmed.substring("Guarantor Name:".length).trim();
+            if (!validateName(val)) return `<span class="invalid">${escapeHtml(normalizedLine)}</span>`;
+            } else if (trimmed.startsWith("City, State:")) {
+            const val = trimmed.substring("City, State:".length).trim();
+            if (!validateCityState(val)) return `<span class="invalid">${escapeHtml(normalizedLine)}</span>`;
+            } else {
+            const labels = [
+                "Purchase Value:", "Down Payment percentage:", "Loan Period:",
+                "Annual Interest rate:", "Purchase Value Reduction:",
+                "Monthly Principal Reduction:", "Total Interest Reduction:"
+            ];
+
+            for (let label of labels) {
+                if (trimmed.startsWith(label)) {
+                const val = trimmed.substring(label.length).trim();
+                if (!validateField(label, val)) {
+                    return `<span class="invalid">${escapeHtml(normalizedLine)}</span>`;
+                }
+                }
+            }
+            }
+
+            return escapeHtml(normalizedLine);
+        });
+
+        document.getElementById("output2").innerHTML = outputLines.join("\n");
+        }
+    </script>
+    <script>
+        function transferText() {
+            const inputText = document.getElementById('output2').innerText;
+            parseAndPopulate(inputText);
+        }
+    </script>
+
+    <script>
+        function clearFields() {
+            document.getElementById("inputData").value = "";
+            document.getElementById("output").innerText = "";
+            document.getElementById("output1").innerText = "";
+            document.getElementById("output2").innerText = "";
+            document.getElementById("fileInput").value = "";
+            const tableBody = document.getElementById("tableBody");
+            if (tableBody) {
+                tableBody.innerHTML = "";
+            } else {
+                console.warn("tableBody element not found!");
+            }
+            worksheetData = [];
+        }
+    </script>
+
+    <script>
+        function downloadOutput(event) {
+            event.preventDefault();
+            let text = document.getElementById('output').innerText;
+            if (!text) {
+                alert('No output data to download.');
+                return;
+            }
+            text = text.replace(/^\d+\.\s*/gm, '');
+            const blob = new Blob([text], { type: 'text/plain' });
+            const link = document.createElement('a');
+            const filename = sourceFileName ? `${sourceFileName}_output.txt` : 'output.txt';
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+
+    <script>
+        async function loadPyodideAndRun() {
+            let pyodide = await loadPyodide();
+            await pyodide.loadPackage("micropip");
+            const pythonCode = `
+import re
+import js
+from pyodide.ffi import create_proxy
+import os
+
+def add_commas_to_input(input_string):
+    normalized_input = '\\n'.join(
+        re.sub(r'\\s+', ' ', re.sub(r'\\(\\s*', '( ', re.sub(r'\\s*\\)', ' )', line))).strip()
+        for line in input_string.strip().split('\\n')
+        if line.strip()
+    )
+
+    lines = normalized_input.split('\\n')
+    all_results = []
+
+    for index, line in enumerate(lines, 1):
+        tokens = line.strip().split()
+        result = []
+        i = 0
+
+        while i < len(tokens):
+            token = tokens[i]
+
+            if re.match(r'^[A-Za-z0-9]+$', token) and i < len(tokens) - 1 and re.match(r'^(Dr\\.|Mr\\.|Mrs\\.|Miss\\.|Ms\\.)', tokens[i + 1]):
+                alphanumeric_seq = []
+                while i < len(tokens) and re.match(r'^[A-Za-z0-9]+$', tokens[i]):
+                    alphanumeric_seq.append(tokens[i])
+                    i += 1
+                result.append(' '.join(alphanumeric_seq) + ',')
+                continue
+
+            if i + 2 < len(tokens):
+                full_name = f"{tokens[i]} {tokens[i+1]} {tokens[i+2]}"
+                if re.match(r'^(Dr\\.|Mr\\.|Mrs\\.|Miss\\.|Ms\\.)[A-Za-z]+ [A-Z] [A-Za-z]+$', full_name):
+                    result.append(full_name + ',')
+                    i += 3
+                    continue
+
+            if re.match(r'^[A-Za-z]+\\.[A-Za-z]+$', token):
+                result.append(token + ',')
+                i += 1
+                continue
+
+            if token.startswith('$'):
+                dollar_parts = [token]
+                while i + 1 < len(tokens) and tokens[i + 1] != 'AND' and not tokens[i + 1].startswith('$') and not tokens[i + 1].startswith('('):
+                    i += 1
+                    dollar_parts.append(tokens[i])
+                joined_dollar = ' '.join(dollar_parts).replace('$ $', '$')
+                if not joined_dollar.endswith(','):
+                    joined_dollar += ','
+                result.append(joined_dollar)
+                i += 1
+                continue
+
+            if token == 'AND':
+                result.append('AND,')
+                i += 1
+                continue
+
+            if re.match(r'^[A-Za-z0-9]+%$', token):
+                result.append(token[:-1] + ' %,')
+                i += 1
+                continue
+
+            if token.lower() == 'years' and len(result) > 0:
+                result[-1] = result[-1].rstrip(',') + ' ' + token + ','
+                i += 1
+                continue
+
+            if re.match(r'^[A-Za-z]+\\.[A-Za-z]+,?$', token) and i + 1 < len(tokens) and re.match(r'^[A-Za-z]+$', tokens[i + 1]) and tokens[i + 1] != 'AND':
+                fixed_percentage = token.rstrip(',') + ' ' + tokens[i + 1] + ' %,' 
+                result.append(fixed_percentage)
+                i += 2
+                continue
+
+            if re.match(r'^[A-Za-z]+\\.[A-Za-z]+,?$', token):
+                fixed_percentage = token.rstrip(',') + ' %,' 
+                result.append(fixed_percentage)
+                i += 1
+                continue
+
+            if token.startswith('('):
+                paren_parts = [token]
+                while i + 1 < len(tokens) and not tokens[i + 1].endswith(')'):
+                    i += 1
+                    paren_parts.append(tokens[i])
+                if i + 1 < len(tokens) and tokens[i + 1].endswith(')'):
+                    i += 1
+                    paren_parts.append(tokens[i])
+                joined_paren = ' '.join(paren_parts)
+                if not joined_paren.endswith(','):
+                    joined_paren += ','
+                result.append(joined_paren)
+                i += 1
+                continue
+
+            result.append(token)
+            i += 1
+
+        output = ' '.join(result)
+        output = re.sub(r'\\s+,', ',', output)
+        output = re.sub(r',+', ',', output)
+        output = re.sub(r',\\s*AND,', ',AND,', output)
+        output = re.sub(r'%\\s+\\(', r'%,(', output)
+        output = re.sub(r'\\b(Cents|Years)\\s+AND\\b', r'\\1,AND', output)
+        output = re.sub(r'(\\b[A-Za-z]+\\.[A-Za-z]+),\\s*([A-Za-z]+)\\s*%', r'\\1 \\2 %', output)
+        output = re.sub(r'(\\([A-Za-z\\s]+\\d+\\.\\d+%\\s+\\))', r'\\1', output)
+        output = re.sub(r'([^\\(])%\\s+([A-Za-z]+)', r'\\1%, \\2', output)
+        output = re.sub(r'(Ms\\.|Mr\\.|Mrs\\.|Dr\\.) ([A-Za-z]+) ([A-Z])[, ]+([A-Za-z]+)', r'\\1 \\2 \\3 \\4', output)
+        output = re.sub(r'(Dr\\.|Mr\\.|Mrs\\.|Miss\\.|Ms\\.) ([A-Za-z]+) ([A-Z]) ([A-Za-z]+)', r'\\1 \\2 \\3 \\4,', output)
+        output = re.sub(r'([A-Za-z]+\\.[A-Za-z]+),\\s*%', r'\\1 %', output)
+
+        all_results.append(f"{index}. {output.strip()}")
+
+    return '\\n\\n'.join(all_results).strip()
+
+def process_input(input_data):
+    try:
+        os.makedirs("/home/pyodide/input", exist_ok=True)
+        os.makedirs("/home/pyodide/output", exist_ok=True)
+    except Exception as e:
+        js.document.getElementById("output").innerText = f"Error creating directories: {str(e)}"
+        return
+
+    try:
+        output_data = add_commas_to_input(input_data)
+        output_file = "/home/pyodide/output/output.txt"
+        with open(output_file, "w") as f:
+            f.write(output_data)
+        js.document.getElementById("output").innerText = output_data
+    except Exception as e:
+        js.document.getElementById("output").innerText = f"Error processing input: {str(e)}"
+
+process_input_proxy = create_proxy(process_input)
+js.window.processInputPython = process_input_proxy
+`;
+            await pyodide.runPythonAsync(pythonCode);
+        }
+
+        loadPyodideAndRun();
+
+        function processInput() {
+            const inputData = document.getElementById("inputData").value;
+            if (inputData) {
+                window.processInputPython(inputData);
+            } else {
+                document.getElementById("output").innerText = "Please provide input data.";
+            }
+        }
+    </script>
+
+    <script>
+        const wordToNumMap = {
+            'zero': 0, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9,
+            'ten': 10, 'eleven': 11, 'twelve': 12, 'thirteen': 13, 'fourteen': 14, 'fifteen': 15, 'sixteen': 16, 'seventeen': 17, 'eighteen': 18, 'nineteen': 19,
+            'twenty': 20, 'thirty': 30, 'forty': 40, 'fifty': 50, 'sixty': 60, 'seventy': 70, 'eighty': 80, 'ninety': 90,
+            'hundred': 100, 'thousand': 1000, 'million': 1000000, 'billion': 1000000000
+        };
+
+        function textToNumber(text) {
+            try {
+                text = text.toLowerCase().trim();
+                if (!text) return 0;
+
+                let result = 0;
+                let current = 0;
+                let words = text.split(/\s+/);
+
+                for (let i = 0; i < words.length; i++) {
+                    let word = words[i].replace(/[^a-z]/g, '');
+                    if (wordToNumMap[word] === undefined) continue;
+
+                    let value = wordToNumMap[word];
+                    if (value >= 1000) {
+                        result += current * value;
+                        current = 0;
+                    } else if (value >= 100) {
+                        current *= value;
+                    } else {
+                        current += value;
+                    }
+                }
+                result += current;
+                return result;
+            } catch (e) {
+                return 0;
+            }
+        }
+
+        function dollarToNumber(dollarText) {
+            let parts = dollarText.split(' Dollars');
+            if (parts.length < 2) return dollarText;
+            let mainText = parts[0].replace('$', '').trim();
+            let cents = 0;
+            if (parts[1].includes(' and ')) {
+                let centsText = parts[1].split(' and ')[1].split(' Cents')[0].trim();
+                cents = textToNumber(centsText);
+            }
+            let mainValue = textToNumber(mainText);
+            let total = mainValue + (cents / 100);
+            return `$${total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+
+        function percentageToNumber(percentage) {
+            percentage = percentage.replace('%', '').trim();
+            if (percentage.includes('.')) {
+                let parts = percentage.split('.');
+                let whole = textToNumber(parts[0]);
+                let decimal = parts[1] ? textToNumber(parts[1]) / 100 : 0;
+                return (whole + decimal).toFixed(2);
+            }
+            return textToNumber(percentage).toString();
+        }
+
+        function yearsToNumber(years) {
+            return textToNumber(years.replace('Years', '').trim()).toString();
+        }
+
+        function formatOutputLine(line) {
+            let numberPrefix = '';
+            const numberMatch = line.match(/^\d+\.\s*/);
+            if (numberMatch) {
+                numberPrefix = numberMatch[0].replace(/\.\s*/, '');
+                line = line.replace(/^\d+\.\s*/, '');
+            }
+            let fields = line.split(',').map(field => field.trim());
+            try {
+                if (fields.length < 14) {
+                    console.warn(`Skipping line with insufficient fields: ${line}`);
+                    return null;
+                }
+
+                const outputFields = {
+                    customerReferenceNumber: fields[0] || "N/A",
+                    customerName: fields[1] || "N/A",
+                    cityState: fields[2] ? fields[2].replace('.', ',') : "N/A",
+                    purchaseValue: dollarToNumber(fields[3]) || "N/A",
+                    downPaymentPercentage: percentageToNumber(fields[5]) + "%" || "N/A",
+                    loanPeriod: yearsToNumber(fields[6]) + " Years" || "N/A",
+                    annualInterestRate: percentageToNumber(fields[8]) + "%" || "N/A",
+                    purchaseValueReduction: fields[9] ? fields[9].split(' ')[4]?.trim() || "N/A" : "N/A",
+                    monthlyPrincipalReduction: fields[10] ? fields[10].split(' ')[4]?.trim() || "N/A" : "N/A",
+                    totalInterestReduction: fields[11] ? fields[11].split(' ')[4]?.trim() || "N/A" : "N/A",
+                    guarantorName: fields[12] || "N/A",
+                    guarantorReferenceNumber: fields[13] || "N/A",
+                    source: sourceFileName || "N/A",
+                    recordNo: numberPrefix || "N/A"
+                };
+
+                return `${numberPrefix}. Customer reference number: ${outputFields.customerReferenceNumber}\n` +
+                       `Customer Name: ${outputFields.customerName}\n` +
+                       `City, State: ${outputFields.cityState}\n` +
+                       `Purchase Value: ${outputFields.purchaseValue}\n` +
+                       `Down Payment percentage: ${outputFields.downPaymentPercentage}\n` +
+                       `Loan Period: ${outputFields.loanPeriod}\n` +
+                       `Annual Interest rate: ${outputFields.annualInterestRate}\n` +
+                       `Purchase Value Reduction: ${outputFields.purchaseValueReduction}\n` +
+                       `Monthly Principal Reduction: ${outputFields.monthlyPrincipalReduction}\n` +
+                       `Total Interest Reduction: ${outputFields.totalInterestReduction}\n` +
+                       `Guarantor Name: ${outputFields.guarantorName}\n` +
+                       `Guarantor Reference Number: ${outputFields.guarantorReferenceNumber}\n` +
+                       `Source: ${outputFields.source}\n` +
+                       `Record No: ${outputFields.recordNo}`;
+            } catch (e) {
+                console.error(`Error processing line: ${line}`, e);
+                return null;
+            }
+        }
+
+        function convertText() {
+            let inputText = document.getElementById('output').innerText;
+            console.log('Input to convertText:', inputText);
+            let lines = inputText.split('\n').map(line => line.trim()).filter(line => line);
+            console.log('Lines to process:', lines);
+            let outputs = lines.map(line => formatOutputLine(line)).filter(out => out);
+            console.log('Processed outputs:', outputs);
+            document.getElementById('output1').innerText = outputs.join('\n\n');
+        }
+    </script>
+
+    <script>
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+            return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+            if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+                try {
+                    var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                    var firstSheetName = workbook.SheetNames[0];
+                    var worksheet = workbook.Sheets[firstSheetName];
+                    var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                    var filteredData = jsonData.filter(row => row.some(filledCell));
+                    var headerRowIndex = filteredData.findIndex((row, index) =>
+                        row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                    );
+                    if (headerRowIndex === -1 || headerRowIndex > 25) {
+                        headerRowIndex = 0;
+                    }
+                    var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex));
+                    csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                    return csv;
+                } catch (e) {
+                    console.error(e);
+                    return "";
+                }
+            }
+            return gk_fileData[filename] || "";
+        }
+
+        let worksheetData = [];
+
+        function parseAndPopulate(inputText) {
+            console.log("parseAndPopulate called");
+            try {
+                const text = inputText ? inputText.replace(/^\d+\.\s*/gm, '').trim() : document.getElementById('output1').innerText.replace(/^\d+\.\s*/gm, '').trim();
+                const entries = text.split('\n\n').slice(0, 7);
+                console.log("Parsed entries:", entries);
+                worksheetData = [];
+                const tableBody = document.getElementById("tableBody");
+                tableBody.innerHTML = '';
+
+                const regexMap = {
+                    customer_reference_number: /Customer Reference Number\s*[:=\s]\s*(.*)/i,
+                    customer_name: /Customer Name\s*[:=\s]\s*(.*)/i,
+                    city_state: /City, State\s*[:=\s]\s*(.*)/i,
+                    purchase_value: /Purchase Value\s*[:=\s]\s*\$?([\d,]+\.?\d*)/i,
+                    downpayment: /(Down Payment percentage|Down Payment %|Down Payment)\s*[:=\s]\s*([\d\.]+)\s*%?/i,
+                    years: /Loan Period\s*[:=\s]\s*(\d+)/i,
+                    annual_interest: /(Annual Interest rate|Annual Interest Rate %|Annual Interest)\s*[:=\s]\s*([\d\.]+)\s*%?/i,
+                    purchase_reduction: /Purchase Value Reduction\s*[:=\s]\s*([\d\.]+)\s*%?/i,
+                    monthly_principal_reduction: /Monthly Principal Reduction\s*[:=\s]\s*([\d\.]+)\s*%?/i,
+                    total_interest_reduction: /Total Interest Reduction\s*[:=\s]\s*([\d\.]+)\s*%?/i,
+                    assessment_rate_reduction: /Assessment Rate Reduction\s*[:=\s]\s*([\d\.]+)\s*%?/i,
+                    guarantor_name: /(Guarantor Name|Gaurantor Name|Gauranter Name|Guarentor Name)\s*[:=\s]\s*(.*)/i,
+                    guarantor_reference_number: /(Guarantor Reference Number|Gaurantor Reference Number|Gauranter Reference Number|Guarentor Reference Number)\s*[:=\s]\s*(.*)/i,
+                    source: /Source\s*[:=\s]\s*(.*)/i,
+                    record_no: /Record No\s*[:=\s]\s*(.*)/i
+                };
+
+                entries.forEach((entry, index) => {
+                    console.log(`Processing entry ${index}:`, entry);
+                    const map = {};
+                    Object.keys(regexMap).forEach(field => {
+                        const match = entry.match(regexMap[field]);
+                        if (field === 'downpayment' || field === 'annual_interest') {
+                            map[field] = match && match[2] ? match[2].trim() : '';
+                        } else {
+                            map[field] = match && match[1] ? match[1].trim() : '';
+                        }
+                    });
+
+                    const lines = entry.split('\n');
+                    lines.forEach(line => {
+                        const guarantorNameMatch = line.match(/Gua(r{1,2}an|ren|ren)t[oe]?r Name\s*[:=\s]\s*(.*)/i);
+                        if (guarantorNameMatch && guarantorNameMatch[2]) {
+                            map.guarantor_name = guarantorNameMatch[2].trim();
+                        }
+                        const guarantorRefMatch = line.match(/Gua(r{1,2}an|ren|ren)t[oe]?r Reference Number\s*[:=\s]\s*(.*)/i);
+                        if (guarantorRefMatch && guarantorRefMatch[2]) {
+                            map.guarantor_reference_number = guarantorRefMatch[2].trim();
+                        }
+                        const sourceMatch = line.match(/Source\s*[:=\s]\s*(.*)/i);
+                        if (sourceMatch && sourceMatch[1]) {
+                            map.source = sourceMatch[1].trim();
+                        }
+                        const recordNoMatch = line.match(/Record No\s*[:=\s]\s*(.*)/i);
+                        if (recordNoMatch && recordNoMatch[1]) {
+                            map.record_no = recordNoMatch[1].trim();
+                        }
+                    });
+
+                    if (!map.downpayment) {
+                        const altDownpayment = entry.match(/Down Payment %\s*[:=\s]\s*([\d\.]+)/i);
+                        map.downpayment = altDownpayment ? altDownpayment[1].trim() : '';
+                    }
+                    if (!map.annual_interest) {
+                        const altInterest = entry.match(/Annual Interest Rate %\s*[:=\s]\s*([\d\.]+)/i);
+                        map.annual_interest = altInterest ? altInterest[1].trim() : '';
+                    }
+
+                    map.customer_reference_number = map.customer_reference_number || "N/A";
+                    map.customer_name = map.customer_name || "N/A";
+                    map.city_state = map.city_state || "N/A";
+                    map.guarantor_name = map.guarantor_name || "N/A";
+                    map.guarantor_reference_number = map.guarantor_reference_number || "N/A";
+                    map.source = map.source || "N/A";
+                    map.record_no = map.record_no || "N/A";
+
+                    console.log('Parsed map for entry:', map);
+
+                    const formattedEntry = calculateLoan(map);
+                    console.log('Calculated loan for entry:', formattedEntry);
+                    const row = formatData(formattedEntry);
+                    console.log('Formatted row for entry:', row);
+                    worksheetData.push(row.tableRow);
+
+                    const tr = document.createElement("tr");
+                    row.tableRow.forEach(cellData => {
+                        const td = document.createElement("td");
+                        td.textContent = cellData;
+                        tr.appendChild(td);
+                    });
+                    tableBody.appendChild(tr);
+                });
+
+                if (worksheetData.length === 0) {
+                    alert('No valid data found. Please check the input format.');
+                }
+            } catch (error) {
+                console.error('Error in parseAndPopulate:', error);
+                alert('An error occurred while processing the data: ' + error.message);
+            }
+        }
+
+        function calculateLoan(entry) {
+            let customerReferenceNumber = entry.customer_reference_number || "N/A";
+            let customerName = entry.customer_name || "N/A";
+            let cityState = entry.city_state || "N/A";
+            let purchaseValue = parseFloat(entry.purchase_value.replace(/,/g, '')) || 0;
+            let downpayment = parseFloat(entry.downpayment) || 0;
+            let years = parseInt(entry.years) || 0;
+            let annualInterest = parseFloat(entry.annual_interest) || 0;
+            let purchaseReduction = parseFloat(entry.purchase_reduction) || 0;
+            let monthlyPrincipalReduction = parseFloat(entry.monthly_principal_reduction) || 0;
+            let totalInterestReduction = parseFloat(entry.total_interest_reduction) || 0;
+            let assessmentRateReduction = parseFloat(entry.assessment_rate_reduction) || 0;
+            let guarantorName = entry.guarantor_name || "N/A";
+            let guarantorReferenceNumber = entry.guarantor_reference_number || "N/A";
+            let source = entry.source || "N/A";
+            let recordNo = entry.record_no || "N/A";
+
+            downpayment = isNaN(downpayment) || downpayment < 0 || downpayment > 100 ? 0 : downpayment;
+            years = isNaN(years) || years <= 0 ? 0 : years;
+            annualInterest = isNaN(annualInterest) || annualInterest < 0 ? 0 : annualInterest;
+            purchaseReduction = isNaN(purchaseReduction) || purchaseReduction < 0 ? 0 : purchaseReduction;
+            monthlyPrincipalReduction = isNaN(monthlyPrincipalReduction) || monthlyPrincipalReduction < 0 ? 0 : monthlyPrincipalReduction;
+            totalInterestReduction = isNaN(totalInterestReduction) || totalInterestReduction < 0 ? 0 : totalInterestReduction;
+            assessmentRateReduction = isNaN(assessmentRateReduction) || assessmentRateReduction < 0 ? 0 : assessmentRateReduction;
+
+            let reductionPurchaseValue = toExactTwoDecimals(purchaseValue * (purchaseReduction / 100));
+            let purchaseAfterReduction = round(purchaseValue - reductionPurchaseValue);
+            let downpaymentAmount = toExactTwoDecimals(purchaseAfterReduction * (downpayment / 100));
+            let loanAmount = round(purchaseAfterReduction - downpaymentAmount);
+            let annualPrincipal = toExactTwoDecimals(loanAmount / years);
+            let monthlyPrincipal = toExactTwoDecimals(annualPrincipal / 12);
+            let reducedMonthlyPrincipal = toExactTwoDecimals(monthlyPrincipal * (monthlyPrincipalReduction / 100));
+            let interestPerAnnum = toExactTwoDecimals(loanAmount * (annualInterest / 100));
+            let interestForLoanPeriod = toExactTwoDecimals(interestPerAnnum * years);
+            let totalInterestForLoanPeriod = toExactTwoDecimals(interestForLoanPeriod * (totalInterestReduction / 100));
+            let propertyReducedValue = toExactTwoDecimals(loanAmount * (assessmentRateReduction / 100));
+            let propertyTaxPerAnnum = toExactTwoDecimals(propertyReducedValue * 0.02);
+            let propertyTaxLoanPeriod = toExactTwoDecimals(propertyTaxPerAnnum * years);
+            let loanToValueRatio = parseFloat(toExactTwoDecimals(100 - downpayment));
+            let propertyInsurancePerMonth = "N/A";
+            let pmiPerMonth = "N/A";
+
+            if (!isNaN(loanAmount) && !isNaN(loanToValueRatio) && loanAmount > 0) {
+                if (loanToValueRatio >= 1 && loanToValueRatio <= 84.99) {
+                    propertyInsurancePerMonth = toExactTwoDecimals((loanAmount * (0.32 / 100)) / 12);
+                } else if (loanToValueRatio >= 85 && loanToValueRatio <= 85.99) {
+                    propertyInsurancePerMonth = toExactTwoDecimals((loanAmount * (0.21 / 100)) / 12);
+                } else if (loanToValueRatio >= 86 && loanToValueRatio <= 90) {
+                    propertyInsurancePerMonth = toExactTwoDecimals((loanAmount * (0.41 / 100)) / 12);
+                } else if (loanToValueRatio >= 90.01 && loanToValueRatio <= 95) {
+                    propertyInsurancePerMonth = toExactTwoDecimals((loanAmount * (0.67 / 100)) / 12);
+                } else if (loanToValueRatio >= 95.01 && loanToValueRatio <= 100) {
+                    propertyInsurancePerMonth = toExactTwoDecimals((loanAmount * (0.85 / 100)) / 12);
+                }
+            }
+
+            if (!isNaN(loanAmount) && !isNaN(loanToValueRatio) && loanAmount > 0) {
+                if (loanToValueRatio >= 80.01 && loanToValueRatio <= 85) {
+                    pmiPerMonth = years <= 20 ? toExactTwoDecimals(loanAmount * (0.19 / 100)) : toExactTwoDecimals(loanAmount * (0.32 / 100));
+                } else if (loanToValueRatio >= 85.01 && loanToValueRatio <= 90) {
+                    pmiPerMonth = years <= 20 ? toExactTwoDecimals(loanAmount * (0.23 / 100)) : toExactTwoDecimals(loanAmount * (0.52 / 100));
+                } else if (loanToValueRatio >= 90.01 && loanToValueRatio <= 95) {
+                    pmiPerMonth = years <= 20 ? toExactTwoDecimals(loanAmount * (0.26 / 100)) : toExactTwoDecimals(loanAmount * (0.78 / 100));
+                }
+            }
+
+            purchaseAfterReduction = purchaseValue === 0 ? "N/A" : purchaseAfterReduction;
+            loanAmount = purchaseValue === 0 || downpayment === 100 ? "N/A" : loanAmount;
+            reducedMonthlyPrincipal = years === 0 || loanAmount === "N/A" ? "N/A" : reducedMonthlyPrincipal;
+            totalInterestForLoanPeriod = years === 0 || loanAmount === "N/A" || annualInterest === 0 ? "N/A" : totalInterestForLoanPeriod;
+            propertyTaxLoanPeriod = years === 0 || loanAmount === "N/A" || assessmentRateReduction === 0 ? "N/A" : propertyTaxLoanPeriod;
+            if (isNaN(loanToValueRatio) || loanAmount === "N/A") {
+                propertyInsurancePerMonth = "N/A";
+                pmiPerMonth = "N/A";
+            }
+
+            return {
+                customerReferenceNumber,
+                customerName,
+                cityState,
+                purchaseValue,
+                downpayment,
+                years,
+                annualInterest,
+                purchaseReduction,
+                monthlyPrincipalReduction,
+                totalInterestReduction,
+                assessmentRateReduction,
+                guarantorName,
+                guarantorReferenceNumber,
+                purchaseAfterReduction,
+                loanAmount,
+                reducedMonthlyPrincipal,
+                totalInterestForLoanPeriod,
+                propertyTaxLoanPeriod,
+                propertyInsurancePerMonth,
+                pmiPerMonth,
+                source,
+                recordNo
+            };
+        }
+
+        function round(value) {
+            return Number(value.toFixed(2));
+        }
+
+        function toExactTwoDecimals(value) {
+            if (value === null || value === undefined || value === "" || isNaN(value)) {
+                return "N/A";
+            }
+            let num = typeof value === "string" ? parseFloat(value) : value;
+            if (isNaN(num)) {
+                return "N/A";
+            }
+            let numStr = num.toString();
+            let [integerPart, decimalPart = ""] = numStr.split(".");
+            if (!decimalPart || decimalPart === "") {
+                return integerPart + ".00";
+            }
+            if (decimalPart.length < 2) {
+                decimalPart = decimalPart + "0";
+            } else {
+                decimalPart = decimalPart.slice(0, 2);
+            }
+            return `${integerPart}.${decimalPart}`;
+        }
+
+        function formatCurrency(amount) {
+            if (typeof amount !== 'number' && typeof amount !== 'string') return amount;
+            let num = typeof amount === 'string' ? parseFloat(amount) : amount;
+            if (isNaN(num)) return amount;
+            let formatted = num.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            formatted = formatted.replace(/,/g, "  ,  ");
+            return "$  " + formatted;
+        }
+
+        function formatName(name) {
+            if (typeof name !== 'string' || name.trim() === '') return "N/A";
+            name = name.replace(/([A-Za-z]{2,3})\./g, '$1 ');
+            let parts = name.trim().toUpperCase().split(/\s+/).map(part => part.replace(/\./g, ''));
+            let prefix = '';
+            if (parts.length > 1 && /^(DR|MRS|MR|MS)$/.test(parts[0])) {
+                prefix = parts[0] + '.';
+                parts = parts.slice(1);
+            }
+            let formattedParts = parts.map((part, index) => {
+                if (index === 0 || (index === 1 && parts.length > 2)) {
+                    return part + '  ';
+                }
+                return part;
+            });
+            return prefix + formattedParts.join('');
+        }
+
+        function formatReference(ref) {
+            if (!ref || ref.trim() === '' || ref === "N/A") return "N/A";
+            return ref.replace(/\s+/g, '   ').trim();
+        }
+
+        function formatData(entry) {
+            let customerRef = formatReference(entry.customerReferenceNumber);
+            let guarantorRef = formatReference(entry.guarantorReferenceNumber);
+            let customerName = formatName(entry.customerName);
+            let guarantorName = formatName(entry.guarantorName);
+            let cityState = entry.cityState.toUpperCase()
+                .replace(/[\.\-:;]/g, ',')
+                .replace(/\s*,\s*/g, ' , ');
+            let purchaseValue = formatCurrency(entry.purchaseAfterReduction);
+            let downPayment = entry.downpayment + " %";
+            let years = entry.years + " YEARS";
+            let annualInterest = entry.annualInterest + " %";
+            let loanAmount = formatCurrency(entry.loanAmount);
+            let monthlyPrincipal = formatCurrency(entry.reducedMonthlyPrincipal);
+            let totalInterestForLoanPeriod = formatCurrency(entry.totalInterestForLoanPeriod);
+            let propertyTaxLoanPeriod = formatCurrency(entry.propertyTaxLoanPeriod);
+            let propertyInsurancePerMonth = formatCurrency(entry.propertyInsurancePerMonth);
+            let pmiPerMonth = formatCurrency(entry.pmiPerMonth);
+            let source = entry.source.toUpperCase();
+            let recordNo = entry.recordNo || "N/A";
+
+            let purchaseAndDownPayment = `${purchaseValue} AND ${downPayment}`;
+            let periodAndInterest = `${years} AND ${annualInterest}`;
+            let loanAndPrincipal = `${loanAmount} AND ${monthlyPrincipal}`;
+            let interestAndTax = `${totalInterestForLoanPeriod} AND ${propertyTaxLoanPeriod}`;
+            let insuranceAndPmi = `${propertyInsurancePerMonth} AND ${pmiPerMonth}`;
+
+            let tableRow = [
+                customerRef,
+                customerName,
+                cityState,
+                purchaseAndDownPayment,
+                periodAndInterest,
+                guarantorName,
+                guarantorRef,
+                loanAndPrincipal,
+                interestAndTax,
+                insuranceAndPmi,
+                loanAmount,
+                years,
+                totalInterestForLoanPeriod,
+                source,
+                recordNo
+            ];
+
+            console.log('Formatted tableRow:', tableRow);
+            return { tableRow };
+        }
+
+        function exportToExcel(event) {
+            if (event) event.preventDefault();
+            if (worksheetData.length === 0) {
+                alert('No data to export. Please display data in the table first.');
+                return;
+            }
+            fetch('http://localhost:3000/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ data: worksheetData }),
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('Data appended to CustomerData.xlsx');
+                } else {
+                    alert('Error saving data: ' + result.error);
+                }
+            })
+            .catch(error => {
+                alert('Error contacting server: ' + error.message);
+            });
+        }
+    </script>
+</body>
+</html>
