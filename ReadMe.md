@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a web-based application for managing customer data, designed for financial or loan-related record-keeping. The application provides a user-friendly interface to input, validate, and export customer data, with a backend server to store data in an Excel file (`CustomerData.xlsx`). Key features include data text file as input, Field Separated Input Data, Key:Value , Validation, Loan Calculation Overview, Excel export, and recent file management.
+This is a web-based application for managing customer data, designed for financial or loan-related record-keeping. The application provides a user-friendly interface to Input, Validate, and Export customer data, with a backend server to store data in an Excel file (`CustomerData.xlsx`). Key features include data text file as input, Field Separated Input Data, Key:Value , Validation, Loan Calculation Overview, Excel export, and recent file management.
 
 ## Features
 
@@ -51,7 +51,7 @@ This is a web-based application for managing customer data, designed for financi
 1. **Clone the Repository**:
    ```bash
    git clone https://github.com/tejeshvanapalli/Mortgage_Calculator.git
-   cd Mortgage-Calculator
+   cd Mortgage_Calculator
    ```
 
 2. **Install Dependencies**:
@@ -67,7 +67,7 @@ This is a web-based application for managing customer data, designed for financi
    The server will run at `http://localhost:3000`.
 
 4. **Access the Frontend**:
-   - Open `fasak.html` in a web browser. If hosting locally, use a tool like `http-server` or place the file in a web server directory.
+   - Open `index.html` in a web browser. If hosting locally, use a tool like `http-server` or place the file in a web server directory.
    - Alternatively, serve the HTML file through the Express server by adding a static file route (not included in the provided `server.js`).
 
 ## Usage
