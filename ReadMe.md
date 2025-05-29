@@ -50,7 +50,7 @@ This is a web-based application for managing customer data, designed for financi
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/GANESHBODLA/Mortgage-Calculator.git
+   git clone https://github.com/tejeshvanapalli/Mortgage_Calculator.git
    cd Mortgage-Calculator
    ```
 
